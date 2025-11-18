@@ -1,2 +1,2 @@
 # Font-Image-Stdio
-a light HTML that makes your text and fonts into a image
+a light HTML app that makes your text and fonts into a image
