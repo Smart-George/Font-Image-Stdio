@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Font Image Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: radial-gradient(circle at top, #201a4d, #050712 55%, #020308 100%);
+            --accent: #7b5cff;
+            --accent-soft: rgba(123, 92, 255, 0.22);
+            --accent-strong: #ae7bff;
+            --card: rgba(15, 18, 40, 0.92);
+            --card-soft: rgba(15, 18, 40, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-strong: rgba(255, 255, 255, 0.22);
+            --text-main: #f9f9ff;
+            --text-muted: #a7afc7;
+            --danger: #ff4d6a;
+            --success: #4dd888;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.65);
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-pill: 999px;
+            --transition-fast: 140ms ease-out;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .orb {
+            position: fixed;
+            width: 460px;
+            height: 460px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(176, 139, 255, 0.7), transparent 65%);
+            filter: blur(20px);
+            opacity: 0.3;
+            top: -120px;
+            right: -120px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .orb.orb-2 {
+            width: 380px;
+            height: 380px;
+            top: auto;
+            bottom: -120px;
+            right: auto;
+            left: -140px;
+            background: radial-gradient(circle at center, rgba(0, 219, 222, 0.6), transparent 65%);
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 1120px;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border-radius: 32px;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(26px) saturate(140%);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .app-header {
+            padding: 18px 22px 10px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, rgba(14,16,35,0.9), rgba(14,16,35,0.65));
+        }
+
+        .traffic-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+        }
+
+        .dot.red { background: #ff5f57; }
+        .dot.yellow { background: #febc2e; }
+        .dot.green { background: #27c93f; }
+
+        .app-title {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .app-title-main {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-title-pill {
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.16);
+            background: linear-gradient(135deg, rgba(123,92,255,0.2), rgba(0,0,0,0.3));
+            color: var(--accent-strong);
+        }
+
+        .ui-pill {
+            margin-left: auto;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 4px 11px;
+            border-radius: var(--radius-pill);
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ui-pill span.bullet {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6efacc, #4dd888);
+            box-shadow: 0 0 6px rgba(110,250,204,0.8);
+        }
+
+        .app-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.1fr 1.3fr;
+            padding: 18px 18px 20px;
+            gap: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel {
+            border-radius: var(--radius-xl);
+            background: var(--card);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at top left, rgba(123,92,255,0.25), transparent 55%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--accent);
+        }
+
+        .panel-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .section-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .font-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-pill);
+            background: linear-gradient(135deg, rgba(123,92,255,0.3), rgba(41,26,102,0.9));
+            border: 1px solid rgba(199,176,255,0.9);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.55);
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-label {
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #f9f7ff;
+            white-space: nowrap;
+        }
+
+        .file-label-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            background: rgba(3,3,12,0.6);
+        }
+
+        .font-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .font-name {
+            font-size: 12px;
+            color: var(--text-main);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .font-status {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .font-status strong {
+            font-weight: 500;
+            color: var(--accent-strong);
+        }
+
+        .status-chip {
+            margin-left: auto;
+            font-size: 11px;
+            padding: 4px 9px;
+            border-radius: var(--radius-pill);
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.14);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 6px rgba(255,77,106,0.8);
+        }
+
+        .status-chip.ok .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 6px rgba(77,216,136,0.9);
+        }
+
+        .status-chip.ok {
+            color: var(--success);
+            border-color: rgba(77,216,136,0.7);
+        }
+
+        .status-chip.loading .status-dot {
+            background: var(--accent);
+            box-shadow: 0 0 6px rgba(123,92,255,0.85);
+        }
+
+        .text-area-wrapper {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-strong);
+            background: radial-gradient(circle at top left, rgba(123,92,255,0.14), transparent 55%);
+            padding: 10px;
+            position: relative;
+        }
+
+        .text-area-wrapper::before {
+            content: "Multi-line supported";
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(243,244,255,0.35);
+        }
+
+        textarea#textInput {
+            width: 100%;
+            border-radius: 12px;
+            border: none;
+            resize: vertical;
+            min-height: 120px;
+            max-height: 220px;
+            padding: 10px 11px;
+            font-size: 14px;
+            line-height: 1.4;
+            background: rgba(4,5,18,0.9);
+            color: var(--text-main);
+            outline: none;
+            font-family: inherit;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        textarea#textInput::placeholder {
+            color: rgba(167,175,199,0.65);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.6fr);
+            gap: 10px;
+        }
+
+        .control-group {
+            border-radius: 14px;
+            padding: 9px 10px 10px;
+            background: rgba(10,12,30,0.95);
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .control-label {
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .control-value {
+            font-variant-numeric: tabular-nums;
+            color: rgba(199,207,232,0.9);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(66,73,112,0.8);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #f8f7ff;
+            box-shadow: 0 0 0 6px rgba(123,92,255,0.45);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #f8f7ff;
+            box-shadow: 0 0 0 6px rgba(123,92,255,0.45);
+            cursor: pointer;
+        }
+
+        .color-row {
+            display: flex;
+            gap: 9px;
+        }
+
+        .color-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .color-swatch {
+            width: 26px;
+            height: 26px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 3px;
+            background: radial-gradient(circle at top, rgba(255,255,255,0.1), rgba(0,0,0,0.9));
+        }
+
+        .color-swatch input[type="color"] {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .color-label-text {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .toggle-knob {
+            width: 30px;
+            height: 16px;
+            border-radius: 999px;
+            background: rgba(85,96,145,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            transition: background var(--transition-fast), border-color var(--transition-fast);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #f9f7ff;
+            box-shadow: 0 0 6px rgba(0,0,0,0.6);
+            transition: transform var(--transition-fast);
+        }
+
+        .toggle-input {
+            display: none;
+        }
+
+        .toggle-input:checked + .toggle-knob {
+            background: rgba(110,250,204,0.16);
+            border-color: rgba(110,250,204,0.7);
+        }
+
+        .toggle-input:checked + .toggle-knob .toggle-thumb {
+            transform: translateX(12px);
+        }
+
+        .panel-actions {
+            margin-top: 4px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn {
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.16);
+            padding: 7px 14px;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: rgba(6,7,20,0.9);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7b5cff, #ae7bff);
+            color: #fff;
+            border-color: rgba(252,250,255,0.9);
+        }
+
+        .btn-ghost {
+            background: rgba(4,5,18,0.8);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.65);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 14px 34px rgba(123,92,255,0.8);
+            background: linear-gradient(135deg, #8f73ff, #c58bff);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.8);
+        }
+
+        .btn-icon {
+            font-size: 14px;
+        }
+
+        .preview-panel {
+            position: relative;
+        }
+
+        .preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+        }
+
+        .preview-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .preview-meta-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-pill {
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            background: rgba(13,15,35,0.9);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+
+        .preview-pill-spot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #7b5cff);
+        }
+
+        .preview-size {
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+        }
+
+        .preview-zoom {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.65);
+            padding: 4px 8px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.14);
+            font-size: 11px;
+        }
+
+        .preview-zoom-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .zoom-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(12,14,30,0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .zoom-btn:hover {
+            background: rgba(23,26,47,0.95);
+        }
+
+        .preview-body {
+            margin-top: 10px;
+            flex: 1;
+            border-radius: 18px;
+            background:
+                linear-gradient(135deg, rgba(123,92,255,0.12), rgba(0,0,0,0.7)),
+                repeating-conic-gradient(from 45deg, rgba(255,255,255,0.05) 0 15deg, rgba(0,0,0,0.1) 15deg 30deg);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-inner-frame {
+            position: relative;
+            border-radius: 16px;
+            padding: 12px;
+            background:
+                linear-gradient(135deg, rgba(0,0,0,0.95), rgba(10,12,30,0.95));
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 22px 40px rgba(0,0,0,0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .checkerboard {
+            position: absolute;
+            inset: 12px;
+            background-image:
+                linear-gradient(45deg, #666 25%, transparent 25%),
+                linear-gradient(-45deg, #666 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #666 75%),
+                linear-gradient(-45deg, transparent 75%, #666 75%);
+            background-size: 18px 18px;
+            background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+            opacity: 0.2;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        canvas#previewCanvas {
+            position: relative;
+            z-index: 2;
+            image-rendering: auto;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .preview-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .tip strong {
+            color: var(--accent-strong);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-mini {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        .message {
+            font-size: 11px;
+            margin-top: 4px;
+            color: var(--text-muted);
+            opacity: 0.85;
+        }
+
+        .message.error {
+            color: #ff8aa0;
+        }
+
+        .message.success {
+            color: #8dffbf;
+        }
+.app-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.app-logo {
+    width: 202px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 8px;
+
+    /* Always-on shadow */
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+
+    /* Smooth animation */
+    transition: 
+        transform 0.25s ease,
+        filter 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.app-logo:hover {
+    transform: translateY(-2px) scale(1.08);
+
+    /* Glow effect with multi-layer neon shadows */
+    filter:
+        drop-shadow(0 0 6px rgba(123, 92, 255, 0.7))
+        drop-shadow(0 0 12px rgba(123, 92, 255, 0.5))
+        drop-shadow(0 0 18px rgba(123, 92, 255, 0.35));
+
+    /* Outer soft halo */
+    box-shadow: 0 0 22px rgba(123, 92, 255, 0.35);
+}
+
+
+        @media (max-width: 900px) {
+            body {
+                padding: 12px;
+            }
+            .app-body {
+                grid-template-columns: 1fr;
+                max-height: none;
+                overflow-y: auto;
+            }
+            .app-shell {
+                max-height: none;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="orb"></div>
+<div class="orb orb-2"></div>
+
+<div class="app-shell">
+    <div class="app-header">
+        <div class="traffic-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+        </div>
+        <div class="app-title">
+    <div class="app-logo-row">
+        <img src="logo.png" class="app-logo">
+        <div class="app-title-main">
+            <span style="font-size:12px; color:rgba(199,207,232,0.8);">
+                — text → PNG with custom fonts
+            </span>
+        </div>
+    </div>
+    <div class="app-title-pill">
+        HTML • Canvas • Custom Fonts
+    </div>
+</div>
+        <div class="ui-pill">
+            <span class="bullet"></span>
+            LIVE RENDER
+        </div>
+    </div>
+
+    <div class="app-body">
+        <!-- LEFT: controls -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Input & Styling</div>
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    Upload TTF / OTF / WOFF
+                </div>
+            </div>
+            <div class="panel-content">
+                <div>
+                    <div class="section-label">Font Source</div>
+                    <div class="font-row">
+                        <div class="file-input-wrapper">
+                            <input type="file" accept=".ttf,.otf,.woff,.woff2" class="file-input" id="fontInput">
+                            <div class="file-label">
+                                <div class="file-label-icon">ƒ</div>
+                                <span>Upload font</span>
+                            </div>
+                        </div>
+                        <div class="font-meta">
+                            <div class="font-name" id="fontFileName">
+                                System default font
+                            </div>
+                            <div class="font-status" id="fontStatus">
+                                Active family: <strong>system-ui</strong>
+                            </div>
+                        </div>
+                        <div class="status-chip" id="fontChip">
+                            <span class="status-dot"></span>
+                            <span id="fontChipText">No font loaded</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="section-label">Text</div>
+                    <div class="text-area-wrapper">
+                        <textarea id="textInput" spellcheck="false"
+                                  placeholder="Type your text here.&#10;Supports multiple lines.&#10;Use a custom font for thumbnails, logos, titles, etc."></textarea>
+                    </div>
+                </div>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <div class="control-header">
+                            <div class="control-label">Font size</div>
+                            <div class="control-value"><span id="fontSizeLabel">64</span> px</div>
+                        </div>
+                        <input type="range" min="16" max="180" value="64" id="fontSizeRange">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <div class="control-label">Padding</div>
+                            <div class="control-value"><span id="paddingLabel">40</span> px</div>
+                        </div>
+                        <input type="range" min="0" max="120" value="40" id="paddingRange">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <div class="control-label">Colors</div>
+                        </div>
+                        <div class="color-row">
+                            <div class="color-field">
+                                <div class="color-swatch">
+                                    <input type="color" id="textColorInput" value="#ffffff">
+                                </div>
+                                <div class="color-label-text">Text</div>
+                            </div>
+                            <div class="color-field">
+                                <div class="color-swatch">
+                                    <input type="color" id="bgColorInput" value="#111111">
+                                </div>
+                                <div class="color-label-text">Background</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <div class="control-label">Background mode</div>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" class="toggle-input" id="transparentToggle">
+                            <div class="toggle-knob">
+                                <div class="toggle-thumb"></div>
+                            </div>
+                            <span>Transparent PNG background</span>
+                        </label>
+                        <div class="message" id="bgHint">
+                            Tip: enable transparency when you want text over other designs.
+                        </div>
+                    </div>
+
+                    <!-- NEW: line handling -->
+                    <div class="control-group">
+                        <div class="control-header">
+                            <div class="control-label">Line handling</div>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" class="toggle-input" id="flattenLinesToggle">
+                            <div class="toggle-knob">
+                                <div class="toggle-thumb"></div>
+                            </div>
+                            <span>Convert newlines into spaces</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="panel-actions">
+                    <button class="btn btn-ghost" id="resetBtn">
+                        <span class="btn-icon">↺</span>
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" id="renderBtn">
+                        <span class="btn-icon">⚡</span>
+                        Render Image
+                    </button>
+                </div>
+                <div class="message" id="statusMessage"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: preview -->
+        <div class="panel preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">Preview & Export</div>
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    2x / 1x / custom size
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="preview-toolbar">
+                    <div class="preview-meta">
+                        <div class="preview-meta-main">
+                            <div class="preview-pill">
+                                <span class="preview-pill-spot"></span>
+                                PNG output
+                            </div>
+                            <span class="preview-size" id="canvasSizeLabel">
+                                0 × 0 px
+                            </span>
+                        </div>
+                        <span id="fontPreviewLabel" style="font-size:11px; color:var(--text-muted);">
+                            Waiting for text…
+                        </span>
+                    </div>
+                    <div class="preview-zoom">
+                        <span>Zoom</span>
+                        <div class="preview-zoom-controls">
+                            <button class="zoom-btn" data-zoom="out">−</button>
+                            <button class="zoom-btn" data-zoom="reset">∙</button>
+                            <button class="zoom-btn" data-zoom="in">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-body">
+                    <div class="preview-inner-frame" id="previewFrame">
+                        <div class="checkerboard"></div>
+                        <canvas id="previewCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="preview-footer">
+                    <div class="tip">
+                        Drag this PNG into editors, or <strong>download</strong> directly.
+                    </div>
+                    <div class="footer-actions">
+                        <button class="btn btn-mini btn-ghost" id="copyDataUrlBtn">
+                            Copy Data URL
+                        </button>
+                        <button class="btn btn-mini btn-primary" id="downloadBtn">
+                            <span class="btn-icon">⬇</span>
+                            Download PNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    const fontInput = document.getElementById("fontInput");
+    const fontFileNameEl = document.getElementById("fontFileName");
+    const fontStatusEl = document.getElementById("fontStatus");
+    const fontChip = document.getElementById("fontChip");
+    const fontChipText = document.getElementById("fontChipText");
+    const textInput = document.getElementById("textInput");
+    const fontSizeRange = document.getElementById("fontSizeRange");
+    const fontSizeLabel = document.getElementById("fontSizeLabel");
+    const paddingRange = document.getElementById("paddingRange");
+    const paddingLabel = document.getElementById("paddingLabel");
+    const textColorInput = document.getElementById("textColorInput");
+    const bgColorInput = document.getElementById("bgColorInput");
+    const transparentToggle = document.getElementById("transparentToggle");
+    const bgHint = document.getElementById("bgHint");
+    const flattenLinesToggle = document.getElementById("flattenLinesToggle");
+    const renderBtn = document.getElementById("renderBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const statusMessage = document.getElementById("statusMessage");
+    const canvas = document.getElementById("previewCanvas");
+    const canvasSizeLabel = document.getElementById("canvasSizeLabel");
+    const fontPreviewLabel = document.getElementById("fontPreviewLabel");
+    const previewFrame = document.getElementById("previewFrame");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const copyDataUrlBtn = document.getElementById("copyDataUrlBtn");
+    const zoomButtons = document.querySelectorAll(".zoom-btn");
+
+    const state = {
+        text: "Font Image Studio Custom font demo ✨",
+        fontSize: 64,
+        padding: 40,
+        textColor: "#ffffff",
+        bgColor: "#111111",
+        transparent: false,
+        zoom: 1,
+        lineFlatten: false
+    };
+
+    let fontUrl = null;
+    let fontFamily = "CustomFont";
+    let customFontLoaded = false;
+
+    function setStatus(msg, type = "") {
+        statusMessage.textContent = msg || "";
+        statusMessage.className = "message";
+        if (!msg) return;
+        if (type === "error") statusMessage.classList.add("error");
+        else if (type === "success") statusMessage.classList.add("success");
+    }
+
+    function updateFontChip(stateType) {
+        fontChip.classList.remove("ok", "loading");
+        if (stateType === "ok") {
+            fontChip.classList.add("ok");
+            fontChipText.textContent = "Font loaded";
+        } else if (stateType === "loading") {
+            fontChip.classList.add("loading");
+            fontChipText.textContent = "Loading font…";
+        } else {
+            fontChipText.textContent = "No font loaded";
+        }
+    }
+
+    function updateUIFromState() {
+        textInput.value = state.text;
+        fontSizeRange.value = state.fontSize;
+        fontSizeLabel.textContent = state.fontSize;
+        paddingRange.value = state.padding;
+        paddingLabel.textContent = state.padding;
+        textColorInput.value = state.textColor;
+        bgColorInput.value = state.bgColor;
+        transparentToggle.checked = state.transparent;
+        flattenLinesToggle.checked = state.lineFlatten;
+        bgHint.style.opacity = state.transparent ? "1" : "0.85";
+        fontPreviewLabel.textContent = state.text.trim()
+            ? `Previewing ${state.text.split(/\r?\n/).length} line(s)`
+            : "Waiting for text…";
+        previewFrame.style.transform = `scale(${state.zoom})`;
+    }
+
+    async function ensureFontLoaded(ctxFontSize) {
+        if (!customFontLoaded) return;
+        if (!document.fonts || !document.fonts.load) return;
+        try {
+            const fontString = `${ctxFontSize || state.fontSize}px "${fontFamily}"`;
+            await document.fonts.load(fontString);
+        } catch (e) {
+            console.warn("Font load failed or unsupported:", e);
+        }
+    }
+
+    async function renderCanvas() {
+        let rawText = state.text || "";
+
+        if (state.lineFlatten) {
+            // smoosh all newlines into spaces
+            rawText = rawText.replace(/\r?\n+/g, " ");
+        }
+
+        const text = rawText.trim() || "Type something above ✏️";
+
+        const lines = state.lineFlatten
+            ? [text]
+            : text.split(/\r?\n/);
+
+        const fontSize = state.fontSize;
+        const padding = state.padding;
+        const lineHeight = Math.round(fontSize * 1.25);
+
+        await ensureFontLoaded(fontSize);
+
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+
+        const fontStack = customFontLoaded
+            ? `${fontSize}px "${fontFamily}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
+            : `${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+
+        tempCtx.font = fontStack;
+
+        let maxWidth = 0;
+        for (const line of lines) {
+            const metrics = tempCtx.measureText(line || " ");
+            const width = metrics.width;
+            if (width > maxWidth) maxWidth = width;
+        }
+
+        const canvasWidth = Math.max(2, Math.ceil(maxWidth + padding * 2));
+        const canvasHeight = Math.max(2, Math.ceil(lines.length * lineHeight + padding * 2));
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+
+        if (state.transparent) {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        } else {
+            ctx.fillStyle = state.bgColor;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+
+        ctx.font = fontStack;
+        ctx.textBaseline = "top";
+        ctx.fillStyle = state.textColor;
+        ctx.shadowColor = "rgba(0,0,0,0.45)";
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 2;
+
+        lines.forEach((line, index) => {
+            ctx.fillText(line, padding, padding + index * lineHeight);
+        });
+
+        canvasSizeLabel.textContent = `${canvasWidth} × ${canvasHeight} px`;
+    }
+
+    function scheduleRender() {
+        window.requestAnimationFrame(renderCanvas);
+    }
+
+    fontInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const name = file.name || "Custom font";
+        fontFileNameEl.textContent = name;
+        fontStatusEl.innerHTML = `Active family: <strong>${name}</strong>`;
+
+        const isFont = /\.(ttf|otf|woff2?)$/i.test(name);
+        if (!isFont) {
+            setStatus("This does not look like a font file. Use .ttf, .otf, .woff, or .woff2.", "error");
+            updateFontChip("error");
+            return;
+        }
+
+        if (fontUrl) {
+            URL.revokeObjectURL(fontUrl);
+            fontUrl = null;
+        }
+
+        fontUrl = URL.createObjectURL(file);
+        customFontLoaded = false;
+        updateFontChip("loading");
+        setStatus("Loading font in browser…");
+
+        let styleEl = document.getElementById("dynamicFontFace");
+        if (styleEl) styleEl.remove();
+        styleEl = document.createElement("style");
+        styleEl.id = "dynamicFontFace";
+        styleEl.textContent = `
+            @font-face {
+                font-family: '${fontFamily}';
+                src: url('${fontUrl}');
+                font-display: swap;
+            }
+        `;
+        document.head.appendChild(styleEl);
+
+        if (document.fonts && document.fonts.load) {
+            document.fonts.load(`64px "${fontFamily}"`).then(() => {
+                customFontLoaded = true;
+                updateFontChip("ok");
+                setStatus("Font loaded successfully. Rendering with your custom font.", "success");
+                scheduleRender();
+            }).catch(err => {
+                console.error(err);
+                customFontLoaded = false;
+                updateFontChip("error");
+                setStatus("Failed to load this font. The browser will keep using the system font.", "error");
+                scheduleRender();
+            });
+        } else {
+            customFontLoaded = true;
+            updateFontChip("ok");
+            setStatus("Font loaded (font loading API not available, but browser should use it).", "success");
+            scheduleRender();
+        }
+    });
+
+    textInput.addEventListener("input", (e) => {
+        state.text = e.target.value;
+        fontPreviewLabel.textContent = state.text.trim()
+            ? `Previewing ${state.text.split(/\r?\n/).length} line(s)`
+            : "Waiting for text…";
+        scheduleRender();
+    });
+
+    fontSizeRange.addEventListener("input", (e) => {
+        state.fontSize = parseInt(e.target.value, 10);
+        fontSizeLabel.textContent = state.fontSize;
+        scheduleRender();
+    });
+
+    paddingRange.addEventListener("input", (e) => {
+        state.padding = parseInt(e.target.value, 10);
+        paddingLabel.textContent = state.padding;
+        scheduleRender();
+    });
+
+    textColorInput.addEventListener("input", (e) => {
+        state.textColor = e.target.value;
+        scheduleRender();
+    });
+
+    bgColorInput.addEventListener("input", (e) => {
+        state.bgColor = e.target.value;
+        if (!state.transparent) scheduleRender();
+    });
+
+    transparentToggle.addEventListener("change", (e) => {
+        state.transparent = e.target.checked;
+        bgHint.style.opacity = state.transparent ? "1" : "0.85";
+        scheduleRender();
+    });
+
+    flattenLinesToggle.addEventListener("change", (e) => {
+        state.lineFlatten = e.target.checked;
+        scheduleRender();
+    });
+
+    renderBtn.addEventListener("click", () => {
+        setStatus("Rendered with current settings.");
+        scheduleRender();
+    });
+
+    resetBtn.addEventListener("click", () => {
+        state.text = "Font Image Studio Custom font demo ✨";
+        state.fontSize = 64;
+        state.padding = 40;
+        state.textColor = "#ffffff";
+        state.bgColor = "#111111";
+        state.transparent = false;
+        state.zoom = 1;
+        state.lineFlatten = false;
+        updateUIFromState();
+        scheduleRender();
+        setStatus("Reset to default demo state.", "success");
+    });
+
+    downloadBtn.addEventListener("click", () => {
+        try {
+            const link = document.createElement("a");
+            const safeText = (state.text.trim() || "text-image")
+                .split(/\s+/)
+                .slice(0, 4)
+                .join("_")
+                .replace(/[^a-zA-Z0-9_\-]+/g, "");
+            const filename = (safeText || "text-image") + ".png";
+
+            link.download = filename;
+            link.href = canvas.toDataURL("image/png");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setStatus(`Downloaded ${filename}.`, "success");
+        } catch (e) {
+            console.error(e);
+            setStatus("Failed to download PNG. Browser might be blocking popups.", "error");
+        }
+    });
+
+    copyDataUrlBtn.addEventListener("click", async () => {
+        try {
+            const dataUrl = canvas.toDataURL("image/png");
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(dataUrl);
+                setStatus("PNG data URL copied to clipboard.", "success");
+            } else {
+                setStatus("Clipboard API not available. Right-click the image and copy/save it.", "error");
+            }
+        } catch (e) {
+            console.error(e);
+            setStatus("Could not copy PNG data URL.", "error");
+        }
+    });
+
+    zoomButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const mode = btn.dataset.zoom;
+            if (mode === "in") {
+                state.zoom = Math.min(2.2, state.zoom + 0.15);
+            } else if (mode === "out") {
+                state.zoom = Math.max(0.5, state.zoom - 0.15);
+            } else {
+                state.zoom = 1;
+            }
+            previewFrame.style.transform = `scale(${state.zoom})`;
+        });
+    });
+
+    updateUIFromState();
+    scheduleRender();
+})();
+</script>
+</body>
+</html>
